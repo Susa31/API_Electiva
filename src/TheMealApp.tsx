@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import BarraBusqueda from "./components/BarraBusqueda";
 import ListElement from "./components/listElement";
 import { listMeals } from "./services/api";
 import type { Meal } from "./types/api";
@@ -6,6 +7,7 @@ import "./styles/style.css";
 
 function TheMealApp() {
   const [meals, setMeals] = useState<Meal[]>([]);
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -33,7 +35,8 @@ function TheMealApp() {
   const filteredMeals = meals.filter((meal) =>
     meal.strMeal
       .toLowerCase()
-    );
+      .includes(search.toLowerCase())
+  );
 
   return (
     <main className="app">
@@ -45,6 +48,10 @@ function TheMealApp() {
           Explora nuestras comidas de la categoría Seafood
         </p>
 
+        <BarraBusqueda
+          search={search}
+          setSearch={setSearch}
+        />
       </header>
 
       {loading && (
@@ -84,4 +91,4 @@ function TheMealApp() {
   );
 }
 
-export default TheMealApp ;
+export default TheMealApp;
