@@ -1,0 +1,194 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.app {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 0;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.header h1 {
+  font-size: 42px;
+  margin-bottom: 10px;
+}
+
+.header p {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 25px;
+}
+
+.search-container {
+  display: flex;
+  justify-content: center;
+}
+
+.search-container input {
+  width: 100%;
+  max-width: 500px;
+
+  padding: 14px 18px;
+
+  border: 1px solid #ccc;
+  border-radius: 10px;
+
+  font-size: 16px;
+
+  outline: none;
+}
+
+.search-container input:focus {
+  border-color: #ff7043;
+}
+
+.meals-container {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 25px;
+}
+
+.meal-card {
+  background-color: white;
+
+  border-radius: 15px;
+
+  overflow: hidden;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.meal-card:hover {
+  transform: translateY(-6px);
+
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.meal-image {
+  width: 100%;
+  height: 200px;
+
+  object-fit: cover;
+
+  display: block;
+}
+
+.meal-content {
+  padding: 18px;
+}
+
+.meal-id {
+  font-size: 13px;
+  color: #888;
+}
+
+.meal-content h2 {
+  font-size: 20px;
+
+  margin: 8px 0 12px;
+}
+
+.meal-content p {
+  color: #666;
+
+  font-size: 14px;
+
+  margin-bottom: 15px;
+}
+
+.meal-content button {
+  width: 100%;
+
+  padding: 10px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background-color: #ff7043;
+
+  color: white;
+
+  font-size: 14px;
+
+  cursor: pointer;
+
+  transition: background-color 0.2s ease;
+}
+
+.meal-content button:hover {
+  background-color: #e85d32;
+}
+
+.message {
+  text-align: center;
+
+  margin: 40px;
+
+  font-size: 18px;
+}
+
+.error {
+  text-align: center;
+
+  margin: 40px;
+
+  color: red;
+
+  font-size: 18px;
+}
+
+@media (max-width: 1000px) {
+  .meals-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 750px) {
+  .meals-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .app {
+    width: 92%;
+  }
+
+  .header h1 {
+    font-size: 32px;
+  }
+
+  .header p {
+    font-size: 16px;
+  }
+
+  .meals-container {
+    grid-template-columns: 1fr;
+  }
+
+  .meal-image {
+    height: 230px;
+  }
+}
