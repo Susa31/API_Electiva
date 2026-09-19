@@ -2,10 +2,6 @@ interface Props {
   count: number;
 }
 
-export const FavoritesCounter = ({ count }: Props) => {
-  return (
-    <div style={{ padding: '10px', fontWeight: 'bold' }}>
-      Saved favorites: {count}
-    </div>
-  );
-};
+export function FavoritesCounter({ count }: Props) {
+  return <p className="favorites-counter">Favoritos guardados: {count}</p>;
+}

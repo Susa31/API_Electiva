@@ -1,28 +1,33 @@
-import type { RequestState, Meal } from "../types/requestState";
+import type { ReactNode } from "react";
+import type { RequestState } from "../types/requestState";
 
-interface Props {
-  state: RequestState;
-  renderSuccess: (meals: Meal[]) => React.ReactNode;
+interface Props<T> {
+  state: RequestState<T>;
+  renderSuccess: (data: T) => ReactNode;
   onRetry?: () => void;
 }
 
-export function StatusMessage({ state, renderSuccess, onRetry }: Props) {
+export function StatusMessage<T>({ state, renderSuccess, onRetry }: Props<T>) {
   switch (state.status) {
     case "loading":
-      return <p>Cargando...</p>;
+      return <p className="message">Cargando...</p>;
 
     case "error":
       return (
-        <div>
+        <div className="error">
           <p>Error: {state.message}</p>
-          {onRetry && <button onClick={onRetry}>Reintentar</button>}
+          {onRetry && (
+            <button className="retry-button" onClick={onRetry}>
+              Reintentar
+            </button>
+          )}
         </div>
       );
 
     case "empty":
-      return <p>Sin resultados</p>;
+      return <p className="message">Sin resultados</p>;
 
     case "success":
-      return <>{renderSuccess(state.meals)}</>;
+      return <>{renderSuccess(state.data)}</>;
   }
 }

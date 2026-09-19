@@ -1,51 +1,41 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 
-export const useFavorites = () => {
-  const [favorites, setFavorites] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem('meal_favorites');
-      return saved ? JSON.parse(saved) : [];
-    } catch (error) {
-      return [];
-    }
-  });
+const STORAGE_KEY = "meal_favorites";
+const SYNC_EVENT = "favoritesUpdated";
+
+function readFavorites(): string[] {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? (JSON.parse(saved) as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function useFavorites() {
+  const [favorites, setFavorites] = useState<string[]>(() => readFavorites());
 
   useEffect(() => {
-    const syncFavorites = () => {
-      try {
-        const saved = localStorage.getItem('meal_favorites');
-        setFavorites(saved ? JSON.parse(saved) : []);
-      } catch (error) {
-        setFavorites([]);
-      }
-    };
+    const syncFavorites = () => setFavorites(readFavorites());
 
-    window.addEventListener('favorites_updated', syncFavorites);
-    window.addEventListener('storage', syncFavorites);
+    window.addEventListener(SYNC_EVENT, syncFavorites);
+    window.addEventListener("storage", syncFavorites);
 
     return () => {
-      window.removeEventListener('favorites_updated', syncFavorites);
-      window.removeEventListener('storage', syncFavorites);
+      window.removeEventListener(SYNC_EVENT, syncFavorites);
+      window.removeEventListener("storage", syncFavorites);
     };
   }, []);
 
   const toggleFavorite = (id: string) => {
-    const currentFavorites = (() => {
-      try {
-        const saved = localStorage.getItem('meal_favorites');
-        return saved ? JSON.parse(saved) : [];
-      } catch (error) {
-        return [];
-      }
-    })();
+    const current = readFavorites();
+    const updated = current.includes(id)
+      ? current.filter((favoriteId) => favoriteId !== id)
+      : [...current, id];
 
-    const newFavorites = currentFavorites.includes(id)
-      ? currentFavorites.filter((favId: string) => favId !== id)
-      : [...currentFavorites, id];
-
-    localStorage.setItem('meal_favorites', JSON.stringify(newFavorites));
-    window.dispatchEvent(new Event('favorites_updated'));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event(SYNC_EVENT));
   };
 
   return { favorites, toggleFavorite };
-};
+}
