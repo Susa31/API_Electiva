@@ -1,92 +1,108 @@
 import { useEffect, useState } from "react";
-import BarraBusqueda from "./components/BarraBusqueda";
-import ListElement from "./components/listElement";
+import SearchBar from "./components/SearchBar";
+import MealCard from "./components/MealCard";
+import MealDetail from "./components/MealDetail";
+import { StatusMessage } from "./components/StatusMessage";
+import { FavoritesCounter } from "./components/FavoritesCounter";
+import { useFavorites } from "./hooks/useFavorites";
 import { listMeals } from "./services/api";
 import type { Meal } from "./types/api";
+import type { RequestState } from "./types/requestState";
 import "./styles/style.css";
 
+const SEARCH_DEBOUNCE_MS = 400;
+
 function TheMealApp() {
-  const [meals, setMeals] = useState<Meal[]>([]);
-  const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [state, setState] = useState<RequestState<Meal[]>>({ status: "loading" });
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
+  const [selectedMealId, setSelectedMealId] = useState<string | null>(null);
+  const { favorites, toggleFavorite } = useFavorites();
 
+  // RF-03: debounce manual de 400 ms, con limpieza del temporizador.
   useEffect(() => {
-    const loadMeals = async () => {
-      try {
-        const data = await listMeals();
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+    }, SEARCH_DEBOUNCE_MS);
 
-        if (data.meals) {
-          setMeals(data.meals.slice(0, 20));
+    return () => clearTimeout(timeoutId);
+  }, [searchInput]);
+
+  // RF-01 / RF-02 / RF-06: carga el listado, cancelable y reintentable.
+  useEffect(() => {
+    const controller = new AbortController();
+
+    setState({ status: "loading" });
+
+    listMeals(controller.signal)
+      .then((data) => {
+        if (controller.signal.aborted) return;
+
+        if (!data.meals || data.meals.length === 0) {
+          setState({ status: "empty" });
         } else {
-          setMeals([]);
+          setState({ status: "success", data: data.meals.slice(0, 20) });
         }
-      } catch (error) {
-        console.error(error);
-        setError("No se pudieron cargar las comidas.");
-      } finally {
-        setLoading(false);
-      }
-    };
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) return;
 
-    loadMeals();
-  }, []);
+        setState({
+          status: "error",
+          message: error instanceof Error ? error.message : "Error desconocido",
+        });
+      });
 
-  const filteredMeals = meals.filter((meal) =>
-    meal.strMeal
-      .toLowerCase()
-      .includes(search.toLowerCase())
-  );
+    return () => controller.abort();
+  }, [retryCount]);
+
+  const retry = () => setRetryCount((count) => count + 1);
 
   return (
     <main className="app">
-
       <header className="header">
         <h1>The Meal App</h1>
+        <p>Explora nuestras comidas de la categoría Seafood</p>
 
-        <p>
-          Explora nuestras comidas de la categoría Seafood
-        </p>
-
-        <BarraBusqueda
-          search={search}
-          setSearch={setSearch}
-        />
+        <SearchBar value={searchInput} onChange={setSearchInput} />
+        <FavoritesCounter count={favorites.length} />
       </header>
 
-      {loading && (
-        <p className="message">
-          Cargando comidas...
-        </p>
+      <StatusMessage
+        state={state}
+        onRetry={retry}
+        renderSuccess={(meals) => {
+          const filteredMeals = meals.filter((meal) =>
+            meal.strMeal.toLowerCase().includes(debouncedSearch.toLowerCase())
+          );
+
+          if (filteredMeals.length === 0) {
+            return <p className="message">No se encontraron comidas.</p>;
+          }
+
+          return (
+            <section className="meals-container">
+              {filteredMeals.map((meal) => (
+                <MealCard
+                  key={meal.idMeal}
+                  meal={meal}
+                  isFavorite={favorites.includes(meal.idMeal)}
+                  onToggleFavorite={() => toggleFavorite(meal.idMeal)}
+                  onSelect={() => setSelectedMealId(meal.idMeal)}
+                />
+              ))}
+            </section>
+          );
+        }}
+      />
+
+      {selectedMealId && (
+        <MealDetail
+          mealId={selectedMealId}
+          onClose={() => setSelectedMealId(null)}
+        />
       )}
-
-      {error && (
-        <p className="error">
-          {error}
-        </p>
-      )}
-
-      {!loading && !error && (
-        <section className="meals-container">
-
-          {filteredMeals.map((meal) => (
-            <ListElement
-              key={meal.idMeal}
-              meal={meal}
-            />
-          ))}
-
-        </section>
-      )}
-
-      {!loading &&
-        !error &&
-        filteredMeals.length === 0 && (
-          <p className="message">
-            No se encontraron comidas.
-          </p>
-        )}
-
     </main>
   );
 }
