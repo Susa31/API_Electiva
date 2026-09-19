@@ -1,10 +1,13 @@
 export interface Meal {
-    strMeal: string;
-    strMealThumb: string;
-    idMeal: string;
-    strCountry: string;
-};
+  idMeal: string;
+  strMeal: string;
+  strMealThumb: string;
+  // Propiedades opcionales que vienen en el detalle
+  strCategory?: string;
+  strArea?: string;
+  strInstructions?: string;
+}
 
-export interface MealResponse {
-    meals: Meal[];
+export interface MealApiResponse {
+  meals: Meal[] | null;
 }
